@@ -41,29 +41,25 @@ contract BeggingContract {
     function withdraw() external onlyOwner {
         uint256 balance = address(this).balance;
         require(balance > 0, "nothing to withdraw");
-        payable(owner).transfer(balance);
         emit Withdrawal(owner, balance);
+        payable(owner).transfer(balance);
     }
 
     function getDonation(address donor) external view returns (uint256) {
         return donations[donor];
     }
 
-    function getTopDonors()
-        external
-        view
-        returns (address[] memory topAddresses, uint256[] memory topAmounts)
-    {
+    function getTopDonors() external view returns (address[] memory topAddresses, uint256[] memory topAmounts) {
         uint256 count = donors.length < 3 ? donors.length : 3;
         topAddresses = new address[](count);
         topAmounts = new uint256[](count);
 
-        uint256 filled;
+        uint256 filled = 0;
         for (uint256 i; i < donors.length; ++i) {
             address donor = donors[i];
             uint256 amount = donations[donor];
 
-            uint256 pos;
+            uint256 pos = 0;
             while (pos < filled && topAmounts[pos] >= amount) {
                 ++pos;
             }
