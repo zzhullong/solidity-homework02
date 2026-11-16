@@ -102,4 +102,77 @@ contract BeggingContractTest is Test {
         vm.prank(owner);
         begging.withdraw();
     }
+
+    function testTopDonorsEmpty() public view {
+        (address[] memory addrs, uint256[] memory amounts) = begging.getTopDonors();
+        assertEq(addrs.length, 0);
+        assertEq(amounts.length, 0);
+    }
+
+    function testTopDonorsFewerThanThree() public {
+        vm.prank(alice);
+        begging.donate{value: 2 ether}();
+        vm.prank(bob);
+        begging.donate{value: 1 ether}();
+
+        (address[] memory addrs, uint256[] memory amounts) = begging.getTopDonors();
+        assertEq(addrs, only2(alice, bob));
+        assertEq(amounts, only2(2 ether, 1 ether));
+    }
+
+    function testTopDonorsSortedDescending() public {
+        address carol = address(0xCA201);
+        address dave = address(0xDA7E);
+        vm.deal(carol, 10 ether);
+        vm.deal(dave, 10 ether);
+
+        vm.prank(alice);
+        begging.donate{value: 1 ether}();
+        vm.prank(bob);
+        begging.donate{value: 5 ether}();
+        vm.prank(carol);
+        begging.donate{value: 3 ether}();
+        vm.prank(dave);
+        begging.donate{value: 4 ether}();
+
+        (address[] memory addrs, uint256[] memory amounts) = begging.getTopDonors();
+        assertEq(addrs, only3(bob, dave, carol));
+        assertEq(amounts, only3(5 ether, 4 ether, 3 ether));
+    }
+
+    function testTopDonorsTieKeepsEarlierFirst() public {
+        address carol = address(0xCA201);
+        vm.deal(carol, 10 ether);
+
+        vm.prank(alice);
+        begging.donate{value: 1 ether}();
+        vm.prank(bob);
+        begging.donate{value: 1 ether}();
+        vm.prank(carol);
+        begging.donate{value: 1 ether}();
+
+        (address[] memory addrs, uint256[] memory amounts) = begging.getTopDonors();
+        assertEq(addrs, only3(alice, bob, carol));
+        assertEq(amounts, only3(1 ether, 1 ether, 1 ether));
+    }
+
+    function only2(address a, address b) private pure returns (address[] memory r) {
+        r = new address[](2);
+        (r[0], r[1]) = (a, b);
+    }
+
+    function only2(uint256 a, uint256 b) private pure returns (uint256[] memory r) {
+        r = new uint256[](2);
+        (r[0], r[1]) = (a, b);
+    }
+
+    function only3(address a, address b, address c) private pure returns (address[] memory r) {
+        r = new address[](3);
+        (r[0], r[1], r[2]) = (a, b, c);
+    }
+
+    function only3(uint256 a, uint256 b, uint256 c) private pure returns (uint256[] memory r) {
+        r = new uint256[](3);
+        (r[0], r[1], r[2]) = (a, b, c);
+    }
 }

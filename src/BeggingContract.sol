@@ -43,4 +43,37 @@ contract BeggingContract {
     function getDonation(address donor) external view returns (uint256) {
         return donations[donor];
     }
+
+    function getTopDonors()
+        external
+        view
+        returns (address[] memory topAddresses, uint256[] memory topAmounts)
+    {
+        uint256 count = donors.length < 3 ? donors.length : 3;
+        topAddresses = new address[](count);
+        topAmounts = new uint256[](count);
+
+        uint256 filled;
+        for (uint256 i; i < donors.length; ++i) {
+            address donor = donors[i];
+            uint256 amount = donations[donor];
+
+            uint256 pos;
+            while (pos < filled && topAmounts[pos] >= amount) {
+                ++pos;
+            }
+            if (pos < 3) {
+                uint256 limit = filled < 3 ? filled : 2;
+                for (uint256 j = limit; j > pos; --j) {
+                    topAddresses[j] = topAddresses[j - 1];
+                    topAmounts[j] = topAmounts[j - 1];
+                }
+                topAddresses[pos] = donor;
+                topAmounts[pos] = amount;
+                if (filled < 3) {
+                    ++filled;
+                }
+            }
+        }
+    }
 }
