@@ -1,6 +1,6 @@
 # 作业二：BeggingContract 讨饭合约 — 实施计划
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** 用 Foundry 实现 BeggingContract（捐赠、提现、查询、事件、Top3 排行榜、捐赠时间窗口），配完整测试、Sepolia 部署脚本和中文 README，并推送为独立 GitHub 仓库。
 
@@ -39,7 +39,7 @@
 **Interfaces:**
 - Produces: 可运行 `forge build` 的空项目。
 
-- [ ] **Step 1: 建目录并初始化 git**
+- [x] **Step 1: 建目录并初始化 git**
 
 ```bash
 mkdir -p /Users/zulg/solidity-homework02/{src,test,script,lib}
@@ -47,7 +47,7 @@ cd /Users/zulg/solidity-homework02
 git init -b main
 ```
 
-- [ ] **Step 2: 写配置文件**
+- [x] **Step 2: 写配置文件**
 
 `foundry.toml`：
 ```toml
@@ -64,14 +64,14 @@ optimizer_runs = 200
 forge-std/=lib/forge-std/src/
 ```
 
-- [ ] **Step 3: 安装 forge-std**
+- [x] **Step 3: 安装 forge-std**
 
 ```bash
 forge install foundry-rs/forge-std
 ```
 HTTPS 失败时用 SSH 克隆并改写 `.gitmodules` 为 HTTPS（同作业一计划 Task 1 Step 3）。
 
-- [ ] **Step 4: 写 `.gitignore` 与 README 骨架**
+- [x] **Step 4: 写 `.gitignore` 与 README 骨架**
 
 `.gitignore`：
 ```
@@ -82,7 +82,7 @@ broadcast/
 ```
 README 骨架：作业链接、功能列表、运行方式。
 
-- [ ] **Step 5: 验证并提交**
+- [x] **Step 5: 验证并提交**
 
 Run: `forge build`
 Expected: 成功。
@@ -113,7 +113,7 @@ git commit -m "chore: scaffold foundry project"
   }
   ```
 
-- [ ] **Step 1: 写失败测试**
+- [x] **Step 1: 写失败测试**
 
 测试合约 `setUp`：`vm.warp(1_000_000)`；`begging = new BeggingContract(block.timestamp, block.timestamp + 7 days)`；给 alice/bob `vm.deal(..., 10 ether)`。
 
@@ -160,21 +160,21 @@ function testFuzzBalanceMatchesDonations(uint96 a, uint96 b) public {
 }
 ```
 
-- [ ] **Step 2: 运行并确认失败**
+- [x] **Step 2: 运行并确认失败**
 
 Run: `forge test --match-contract BeggingContractTest`
 Expected: 编译失败（BeggingContract 未定义）。
 
-- [ ] **Step 3: 实现**
+- [x] **Step 3: 实现**
 
 要点：构造函数 `require(_startTime < _endTime, "invalid window")`；`owner = msg.sender`；`donate` 要求 `msg.value > 0`，首次捐赠（`donations[msg.sender] == 0`）时 push 到 `donors`，累计；`withdraw` 用 `onlyOwner` modifier，`require(address(this).balance > 0, "nothing to withdraw")`，`payable(owner).transfer(address(this).balance)`；`getDonation` 返回 mapping。时间窗口本任务暂不启用（Task 5 加）。
 
-- [ ] **Step 4: 运行测试通过**
+- [x] **Step 4: 运行测试通过**
 
 Run: `forge test --match-contract BeggingContractTest -vvv`
 Expected: 8 个测试 PASS。
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add src/BeggingContract.sol test/BeggingContract.t.sol
@@ -196,7 +196,7 @@ git commit -m "feat: add begging contract core with tests"
   event Withdrawal(address indexed owner, uint256 amount);
   ```
 
-- [ ] **Step 1: 写失败测试**
+- [x] **Step 1: 写失败测试**
 
 ```solidity
 function testDonationEvent() public {
@@ -212,21 +212,21 @@ function testWithdrawalEvent() public {
 }
 ```
 
-- [ ] **Step 2: 运行并确认失败**
+- [x] **Step 2: 运行并确认失败**
 
 Run: `forge test --match-test "Event" -vvv`
 Expected: FAIL（事件不存在，编译失败）。
 
-- [ ] **Step 3: 实现**
+- [x] **Step 3: 实现**
 
 在 `donate` 记账后 `emit Donation(msg.sender, msg.value);`；`withdraw` 在 transfer 前记录 `uint256 amount = address(this).balance;`，转账后 `emit Withdrawal(owner, amount);`。
 
-- [ ] **Step 4: 运行测试通过**
+- [x] **Step 4: 运行测试通过**
 
 Run: `forge test --match-test "Event" -vvv`
 Expected: PASS。
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add src/BeggingContract.sol test/BeggingContract.t.sol
@@ -249,7 +249,7 @@ git commit -m "feat: emit donation and withdrawal events"
       returns (address[] memory topAddresses, uint256[] memory topAmounts);
   ```
 
-- [ ] **Step 1: 写失败测试**
+- [x] **Step 1: 写失败测试**
 
 ```solidity
 function testTopDonorsEmpty() public view {
@@ -266,21 +266,21 @@ function testTopDonorsTieKeepsEarlierFirst() public {
 }
 ```
 
-- [ ] **Step 2: 运行并确认失败**
+- [x] **Step 2: 运行并确认失败**
 
 Run: `forge test --match-test "TopDonors" -vvv`
 Expected: 编译失败。
 
-- [ ] **Step 3: 实现**
+- [x] **Step 3: 实现**
 
 view 函数遍历 `donors`：维护长度 ≤3 的降序数组；每个地址与当前末位比较，严格大于才插入，金额相等时保留先出现者；返回 `min(3, donors.length)` 长度的两个数组。
 
-- [ ] **Step 4: 运行测试通过**
+- [x] **Step 4: 运行测试通过**
 
 Run: `forge test --match-test "TopDonors" -vvv`
 Expected: PASS。
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add src/BeggingContract.sol test/BeggingContract.t.sol
@@ -298,7 +298,7 @@ git commit -m "feat: add top three donors view"
 **Interfaces:**
 - Produces: `donate` 受 `onlyDuringDonationWindow` 约束；`startTime`/`endTime` 已在 Task 2 定义为 immutable。
 
-- [ ] **Step 1: 写失败测试**
+- [x] **Step 1: 写失败测试**
 
 ```solidity
 function testDonateBeforeStartReverts() public {
@@ -324,12 +324,12 @@ function testConstructorRejectsInvalidWindow() public {
 }
 ```
 
-- [ ] **Step 2: 运行并确认失败**
+- [x] **Step 2: 运行并确认失败**
 
 Run: `forge test --match-test "Donate.*(Start|End|Window)|Constructor" -vvv`
 Expected: 窗口外捐赠的测试 FAIL。
 
-- [ ] **Step 3: 实现**
+- [x] **Step 3: 实现**
 
 加 modifier：
 ```solidity
@@ -340,12 +340,12 @@ modifier onlyDuringDonationWindow() {
 ```
 挂到 `donate`。
 
-- [ ] **Step 4: 运行全部测试**
+- [x] **Step 4: 运行全部测试**
 
 Run: `forge test -vvv`
 Expected: 全部 PASS（含 Task 2–4 的测试，注意 Task 2 的 fuzz 测试在 setUp 的窗口内执行）。
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add src/BeggingContract.sol test/BeggingContract.t.sol
@@ -363,7 +363,7 @@ git commit -m "feat: restrict donations to time window"
 **Interfaces:**
 - Consumes: `BeggingContract(uint256,uint256)`。
 
-- [ ] **Step 1: 写部署脚本**
+- [x] **Step 1: 写部署脚本**
 
 ```solidity
 contract Deploy is Script {
@@ -385,12 +385,12 @@ PRIVATE_KEY=<your_test_wallet_private_key>
 ETHERSCAN_API_KEY=<your_etherscan_key>
 ```
 
-- [ ] **Step 2: 编译并测试**
+- [x] **Step 2: 编译并测试**
 
 Run: `forge build && forge test -vvv`
 Expected: 编译成功，全部测试 PASS。
 
-- [ ] **Step 3: 补全 README**
+- [x] **Step 3: 补全 README**
 
 内容：
 - 作业来源链接、功能清单（必做 + 三个可选挑战及实现方式）。
@@ -406,7 +406,7 @@ Expected: 编译成功，全部测试 PASS。
 - 合约地址占位：`<待部署后填写>`；测试截图占位：`<待补充>`。
 - 安全说明：私钥只放在本地 `.env`，测试用临时钱包。
 
-- [ ] **Step 4: 格式检查并提交**
+- [x] **Step 4: 格式检查并提交**
 
 Run: `forge fmt --check`
 Expected: 退出码 0；若有差异 `forge fmt` 后再跑 `forge test`。
@@ -421,14 +421,14 @@ git commit -m "docs: add deployment script and usage documentation"
 
 **前置条件：** 用户已在 GitHub 创建空仓库 `zzhullong/solidity-homework02`，或提供了可创建仓库的凭据。
 
-- [ ] **Step 1: 关联远程**
+- [x] **Step 1: 关联远程**
 
 ```bash
 cd /Users/zulg/solidity-homework02
 git remote add origin git@github.com:zzhullong/solidity-homework02.git
 ```
 
-- [ ] **Step 2: 推送并验证**
+- [x] **Step 2: 推送并验证**
 
 ```bash
 git push -u origin main
