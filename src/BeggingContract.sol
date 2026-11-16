@@ -24,7 +24,12 @@ contract BeggingContract {
         _;
     }
 
-    function donate() external payable {
+    modifier onlyDuringDonationWindow() {
+        require(block.timestamp >= startTime && block.timestamp <= endTime, "donation window closed");
+        _;
+    }
+
+    function donate() external payable onlyDuringDonationWindow {
         require(msg.value > 0, "zero donation");
         if (donations[msg.sender] == 0) {
             donors.push(msg.sender);

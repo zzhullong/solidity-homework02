@@ -175,4 +175,37 @@ contract BeggingContractTest is Test {
         r = new uint256[](3);
         (r[0], r[1], r[2]) = (a, b, c);
     }
+
+    function testDonateBeforeStartReverts() public {
+        vm.warp(begging.startTime() - 1);
+        vm.prank(alice);
+        vm.expectRevert();
+        begging.donate{value: 1 ether}();
+    }
+
+    function testDonateAtStartSucceeds() public {
+        vm.warp(begging.startTime());
+        vm.prank(alice);
+        begging.donate{value: 1 ether}();
+        assertEq(begging.getDonation(alice), 1 ether);
+    }
+
+    function testDonateAtEndSucceeds() public {
+        vm.warp(begging.endTime());
+        vm.prank(alice);
+        begging.donate{value: 1 ether}();
+        assertEq(begging.getDonation(alice), 1 ether);
+    }
+
+    function testDonateAfterEndReverts() public {
+        vm.warp(begging.endTime() + 1);
+        vm.prank(alice);
+        vm.expectRevert();
+        begging.donate{value: 1 ether}();
+    }
+
+    function testConstructorRejectsInvalidWindow() public {
+        vm.expectRevert();
+        new BeggingContract(100, 100);
+    }
 }
