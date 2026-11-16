@@ -14,6 +14,7 @@ contract BeggingContract {
 
     constructor(uint256 _startTime, uint256 _endTime) {
         require(_startTime < _endTime, "invalid window");
+        require(_endTime > block.timestamp, "window already ended");
         owner = msg.sender;
         startTime = _startTime;
         endTime = _endTime;

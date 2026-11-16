@@ -38,9 +38,9 @@ contract BeggingContract {
 
 - **权限**：`withdraw` 只能由部署者（`owner`）调用；其他地址调用会 revert。
 - **捐赠金额**：`msg.value` 必须大于 0；同一地址多次捐赠会累加。
-- **时间窗口**：`startTime <= block.timestamp <= endTime` 时可捐赠。开始时刻与结束时刻都可捐，窗口外 revert；构造时要求 `startTime < endTime`。
+- **时间窗口**：`startTime <= block.timestamp <= endTime` 时可捐赠。开始时刻与结束时刻都可捐，窗口外 revert；构造时要求 `startTime < endTime`，且 `endTime` 必须晚于部署时刻，避免部署出一个永远无法捐赠的合约。
 - **提现**：要求合约余额大于 0；按作业要求使用 `payable(owner).transfer(...)`。现代 Solidity 更推荐 `call{value: ...}("")` 配合重入防护，本项目按作业要求保留 `transfer`。提现后链上捐赠记录保留，不做清零。
-- **排行榜**：`getTopDonors` 是 view 函数，内部扫描捐赠者列表，返回至多 3 个地址及金额，按金额降序；金额相同时，先捐赠者排在前。不足 3 人时返回实际人数。
+- **排行榜**：`getTopDonors` 是 view 函数，内部扫描捐赠者列表，返回至多 3 个地址及金额，按金额降序；金额相同时，先捐赠者排在前。不足 3 人时返回实际人数。扫描成本随捐赠者数量线性增长（O(n)），作为 view 调用不消耗链上 gas，但捐赠者极多时可能触及 `eth_call` 的 gas 上限；生产级场景应改为维护有序榜单。
 - **owner 地址**：实际部署时 owner 是部署交易的发送者（通常是 MetaMask 的 EOA）。由于使用 `transfer`，如果 owner 是合约账户，它必须能接收 ETH，否则提现会 revert。
 
 ## 运行测试
@@ -53,15 +53,34 @@ forge test -vvv
 
 ## 部署到 Sepolia
 
-### 方式一：Foundry 脚本
+### 方式一：Foundry 脚本（推荐）
+
+部署脚本会校验 `block.chainid == 11155111`，防止误连其他网络部署。
+
+推荐用加密 keystore 保存私钥（只需导入一次）：
 
 ```bash
+cast wallet import deployer --interactive
+
 cp .env.example .env
-# 编辑 .env，填入 Sepolia RPC、测试钱包私钥、Etherscan API Key
+# 填入 SEPOLIA_RPC_URL、ETHERSCAN_API_KEY、DEPLOYER_ADDRESS
 source .env
 
 forge script script/Deploy.s.sol \
   --rpc-url $SEPOLIA_RPC_URL \
+  --account deployer \
+  --sender $DEPLOYER_ADDRESS \
+  --broadcast \
+  --verify \
+  --etherscan-api-key $ETHERSCAN_API_KEY
+```
+
+也可以改用命令行直接传私钥（私钥会出现在进程参数中，仅建议测试钱包使用）：
+
+```bash
+forge script script/Deploy.s.sol \
+  --rpc-url $SEPOLIA_RPC_URL \
+  --private-key $PRIVATE_KEY \
   --broadcast \
   --verify \
   --etherscan-api-key $ETHERSCAN_API_KEY
@@ -75,7 +94,7 @@ forge script script/Deploy.s.sol \
 
 1. 打开 [Remix IDE](https://remix.ethereum.org)，新建 `BeggingContract.sol` 并粘贴 `src/BeggingContract.sol` 内容。
 2. 编译器选择 0.8.24 及以上，Environment 选择 **Injected Provider - MetaMask**，网络切到 Sepolia。
-3. Deploy 时填入构造参数：`_startTime`、`_endTime`（Unix 时间戳，单位秒，且 start 必须小于 end）。
+3. Deploy 时填入构造参数：`_startTime`、`_endTime`（Unix 时间戳，单位秒；start 必须小于 end，且 end 必须晚于当前时间）。
 4. 用 MetaMask 调用 `donate` 并附带 ETH；切换回 owner 账户调用 `withdraw`；调用 `getDonation` 验证记账。
 
 ## 部署信息
@@ -95,7 +114,7 @@ forge script script/Deploy.s.sol \
 
 ```
 src/      BeggingContract.sol
-test/     BeggingContract.t.sol（19 个测试）
+test/     BeggingContract.t.sol（25 个测试）
 script/   Deploy.s.sol
 lib/      forge-std（git submodule）
 ```

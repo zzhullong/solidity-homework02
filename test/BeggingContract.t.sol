@@ -35,7 +35,7 @@ contract BeggingContractTest is Test {
 
     function testDonateZeroReverts() public {
         vm.prank(alice);
-        vm.expectRevert();
+        vm.expectRevert("zero donation");
         begging.donate{value: 0}();
     }
 
@@ -62,13 +62,13 @@ contract BeggingContractTest is Test {
         begging.donate{value: 1 ether}();
 
         vm.prank(alice);
-        vm.expectRevert();
+        vm.expectRevert("not owner");
         begging.withdraw();
     }
 
     function testWithdrawEmptyBalanceReverts() public {
         vm.prank(owner);
-        vm.expectRevert();
+        vm.expectRevert("nothing to withdraw");
         begging.withdraw();
     }
 
@@ -179,7 +179,7 @@ contract BeggingContractTest is Test {
     function testDonateBeforeStartReverts() public {
         vm.warp(begging.startTime() - 1);
         vm.prank(alice);
-        vm.expectRevert();
+        vm.expectRevert("donation window closed");
         begging.donate{value: 1 ether}();
     }
 
@@ -200,13 +200,19 @@ contract BeggingContractTest is Test {
     function testDonateAfterEndReverts() public {
         vm.warp(begging.endTime() + 1);
         vm.prank(alice);
-        vm.expectRevert();
+        vm.expectRevert("donation window closed");
         begging.donate{value: 1 ether}();
     }
 
     function testConstructorRejectsInvalidWindow() public {
-        vm.expectRevert();
+        vm.expectRevert("invalid window");
         new BeggingContract(100, 100);
+    }
+
+    function testConstructorRejectsPastEnd() public {
+        vm.warp(1_000_000);
+        vm.expectRevert("window already ended");
+        new BeggingContract(1_000_000 - 2 days, 1_000_000 - 1 days);
     }
 
     function testFuzzRepeatedDonationsKeepAccounting(uint96 a1, uint96 a2, uint96 a3, uint96 a4, uint96 a5) public {
@@ -294,7 +300,7 @@ contract BeggingContractTest is Test {
         begging.withdraw();
 
         vm.prank(owner);
-        vm.expectRevert();
+        vm.expectRevert("nothing to withdraw");
         begging.withdraw();
     }
 }
