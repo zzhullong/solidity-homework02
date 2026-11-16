@@ -85,4 +85,21 @@ contract BeggingContractTest is Test {
         assertEq(begging.getDonation(alice), a);
         assertEq(begging.getDonation(bob), b);
     }
+
+    function testDonationEvent() public {
+        vm.expectEmit(true, false, false, true, address(begging));
+        emit BeggingContract.Donation(alice, 1 ether);
+        vm.prank(alice);
+        begging.donate{value: 1 ether}();
+    }
+
+    function testWithdrawalEvent() public {
+        vm.prank(alice);
+        begging.donate{value: 1 ether}();
+
+        vm.expectEmit(true, false, false, true, address(begging));
+        emit BeggingContract.Withdrawal(owner, 1 ether);
+        vm.prank(owner);
+        begging.withdraw();
+    }
 }

@@ -9,6 +9,9 @@ contract BeggingContract {
     mapping(address => uint256) private donations;
     address[] private donors;
 
+    event Donation(address indexed donor, uint256 amount);
+    event Withdrawal(address indexed owner, uint256 amount);
+
     constructor(uint256 _startTime, uint256 _endTime) {
         require(_startTime < _endTime, "invalid window");
         owner = msg.sender;
@@ -27,12 +30,14 @@ contract BeggingContract {
             donors.push(msg.sender);
         }
         donations[msg.sender] += msg.value;
+        emit Donation(msg.sender, msg.value);
     }
 
     function withdraw() external onlyOwner {
         uint256 balance = address(this).balance;
         require(balance > 0, "nothing to withdraw");
         payable(owner).transfer(balance);
+        emit Withdrawal(owner, balance);
     }
 
     function getDonation(address donor) external view returns (uint256) {
