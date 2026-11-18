@@ -64,8 +64,11 @@ contract BeggingContract {
     function withdraw() external onlyOwner {
         uint256 balance = address(this).balance;
         require(balance > 0, "nothing to withdraw");
+        (bool ok, ) = payable(owner).call{value: balance}("");
+        require(ok, "withdraw failed");
         emit Withdrawal(owner, balance);
-        payable(owner).transfer(balance);
+        
+       
     }
 
     /// @notice 查询某个地址的累计捐赠金额；未捐赠过返回 0
